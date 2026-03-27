@@ -1,8 +1,10 @@
 import pg from 'pg';
 import dotenv from 'dotenv';
+
 dotenv.config();
-// =================================================================================================
+// ================================================================================
 const { Pool } = pg;
+
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -13,8 +15,8 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
 });
-// =================================================================================================
-//Test database connection
+// ================================================================================
+// Test database connection
 pool.connect((err, client, release) => {
   if (err) {
     console.error('Database connection failed:', err.stack);
@@ -23,4 +25,5 @@ pool.connect((err, client, release) => {
     release();
   }
 });
+
 export default pool;

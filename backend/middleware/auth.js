@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import pool from '../config/database.js';
-// =================================================================================================
+// ================================================================================
 // Verify JWT token middleware
 export const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -31,8 +31,8 @@ export const authenticateToken = async (req, res, next) => {
     return res.status(403).json({ error: 'Invalid token.' });
   }
 };
-// =================================================================================================
-// Role based authorization middleware
+// ================================================================================
+// Role-based authorization middleware
 export const verifyRole = (allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {

@@ -2,20 +2,19 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../config/database.js';
+import { authenticateToken } from '../middleware/auth.js';
+
 const router = express.Router();
-// =================================================================================================
+// ================================================================================
 // User registration
 router.post('/register', async (req, res) => {
   const { username, email, password, role = 'student' } = req.body;
-// =================================================================================================
-  // Validate required fields
+
   if (!username || !email || !password) {
     return res.status(400).json({ error: 'All fields are required.' });
   }
 
   try {
-// =================================================================================================
-    // Check if user already exists
     const existingUser = await pool.query(
       'SELECT id FROM users WHERE email = $1 OR username = $2',
       [email, username]
@@ -24,11 +23,9 @@ router.post('/register', async (req, res) => {
     if (existingUser.rows.length > 0) {
       return res.status(409).json({ error: 'User already exists.' });
     }
-// =================================================================================================
-    // Hash password
+
     const hashedPassword = await bcrypt.hash(password, 10);
-// =================================================================================================
-    // Insert new user
+
     const result = await pool.query(
       `INSERT INTO users (username, email, password_hash, role) 
        VALUES ($1, $2, $3, $4) 
@@ -37,12 +34,11 @@ router.post('/register', async (req, res) => {
     );
 
     const user = result.rows[0];
-// =================================================================================================
-    // Generate JWT token
+
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
     res.status(201).json({
@@ -60,7 +56,7 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
-// =================================================================================================
+// ================================================================================
 // User login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -70,8 +66,6 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-// =================================================================================================
-    // Find user by email
     const result = await pool.query(
       'SELECT id, username, email, password_hash, role FROM users WHERE email = $1',
       [email]
@@ -82,19 +76,16 @@ router.post('/login', async (req, res) => {
     }
 
     const user = result.rows[0];
-// =================================================================================================
-    // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
 
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
-// =================================================================================================
-    // Generate JWT token
+
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
     res.json({
@@ -112,8 +103,8 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
-// =================================================================================================
-// Get current user (protected route)
+// ================================================================================
+// Get current user
 router.get('/me', authenticateToken, async (req, res) => {
   res.json({ user: req.user });
 });

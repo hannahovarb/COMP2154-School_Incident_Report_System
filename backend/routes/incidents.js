@@ -1,11 +1,15 @@
 import express from 'express';
+import fs from 'fs';
 import { authenticateToken, verifyRole } from '../middleware/auth.js';
+import upload from '../middleware/upload.js';
 import pool from '../config/database.js';
+
 const router = express.Router();
-// =================================================================================================
+
 // Get all incidents (admin only)
 router.get('/', authenticateToken, verifyRole(['admin']), async (req, res) => {
   const { type, status, search } = req.query;
+  
   try {
     let query = `
       SELECT i.*, u.username as reporter_name 
@@ -40,10 +44,11 @@ router.get('/', authenticateToken, verifyRole(['admin']), async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch incidents.' });
   }
 });
-// =================================================================================================
+
 // Get incident by ID (admin only)
 router.get('/:id', authenticateToken, verifyRole(['admin']), async (req, res) => {
   const { id } = req.params;
+  
   try {
     const result = await pool.query(
       `SELECT i.*, u.username as reporter_name 
@@ -56,52 +61,65 @@ router.get('/:id', authenticateToken, verifyRole(['admin']), async (req, res) =>
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Incident not found.' });
     }
+
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Error fetching incident:', error);
     res.status(500).json({ error: 'Failed to fetch incident.' });
   }
 });
-// =================================================================================================
-// Create new incident (authenticated users)
-router.post('/', authenticateToken, async (req, res) => {
-  const { type, description, location, image_url, is_anonymous = false } = req.body;
 
+// Create new incident (authenticated users)
+router.post('/', authenticateToken, upload.single('image'), async (req, res) => {
+  const { type, description, location, is_anonymous = 'false' } = req.body;
+  
   if (!type || !description || !location) {
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
     return res.status(400).json({ error: 'Type, description, and location are required.' });
   }
-  try {
-    const reporterId = is_anonymous ? null : req.user.id;
-    const reporterName = is_anonymous ? 'Anonymous' : req.user.username;
 
+  try {
+    const isAnonymous = is_anonymous === 'true' || is_anonymous === true;
+    const reporterId = isAnonymous ? null : req.user?.id || null;
+    const reporterName = isAnonymous ? 'Anonymous' : req.user?.username || 'Anonymous';
+    
+    let imageUrl = null;
+    if (req.file) {
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
+    
     const result = await pool.query(
       `INSERT INTO incidents (user_id, type, description, location, image_url, status, reporter_name)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [reporterId, type, description, location, image_url || null, 'pending', reporterName]
+      [reporterId, type, description, location, imageUrl, 'pending', reporterName]
     );
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
     console.error('Error creating incident:', error);
     res.status(500).json({ error: 'Failed to create incident.' });
   }
 });
-// =================================================================================================
+
 // Update incident status (admin only)
 router.patch('/:id/status', authenticateToken, verifyRole(['admin']), async (req, res) => {
   const { id } = req.params;
   const { status, notes } = req.body;
+
   const validStatuses = ['pending', 'in_progress', 'resolved'];
   if (!status || !validStatuses.includes(status)) {
     return res.status(400).json({ error: 'Valid status is required.' });
   }
+
   try {
-// =================================================================================================
-    // Start transaction
     await pool.query('BEGIN');
-// =================================================================================================
-    // Update incident status
+
     const incidentResult = await pool.query(
       `UPDATE incidents 
        SET status = $1, updated_at = CURRENT_TIMESTAMP
@@ -114,8 +132,7 @@ router.patch('/:id/status', authenticateToken, verifyRole(['admin']), async (req
       await pool.query('ROLLBACK');
       return res.status(404).json({ error: 'Incident not found.' });
     }
-// =================================================================================================
-    // Add status history entry
+
     await pool.query(
       `INSERT INTO status_history (incident_id, status, notes, changed_by)
        VALUES ($1, $2, $3, $4)`,
@@ -134,10 +151,11 @@ router.patch('/:id/status', authenticateToken, verifyRole(['admin']), async (req
     res.status(500).json({ error: 'Failed to update status.' });
   }
 });
-// =================================================================================================
+
 // Get status history for an incident
 router.get('/:id/history', authenticateToken, verifyRole(['admin']), async (req, res) => {
   const { id } = req.params;
+  
   try {
     const result = await pool.query(
       `SELECT sh.*, u.username as changed_by_name
@@ -154,4 +172,5 @@ router.get('/:id/history', authenticateToken, verifyRole(['admin']), async (req,
     res.status(500).json({ error: 'Failed to fetch history.' });
   }
 });
+
 export default router;

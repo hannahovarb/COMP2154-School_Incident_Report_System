@@ -52,6 +52,7 @@ CREATE INDEX idx_incidents_status ON incidents(status);
 CREATE INDEX idx_incidents_type ON incidents(type);
 CREATE INDEX idx_incidents_created_at ON incidents(created_at);
 CREATE INDEX idx_incidents_user_id ON incidents(user_id);
+CREATE INDEX idx_status_history_incident_id ON status_history(incident_id);
 
 -- Insert sample incident types
 INSERT INTO incident_types (name, description) VALUES
@@ -61,19 +62,7 @@ INSERT INTO incident_types (name, description) VALUES
 ('Lost Item', 'Lost and found reports'),
 ('Other', 'Other types of incidents');
 
--- Insert sample admin user (password: admin123)
-INSERT INTO users (username, email, password_hash, role) VALUES
-('admin', 'admin@school.edu', '$2b$10$YourHashedPasswordHere', 'admin');
-
--- Insert sample incidents
-INSERT INTO incidents (user_id, type, description, location, status, reporter_name) VALUES
-(1, 'Bullying', 'Student reports being bullied in the hallway', 'High School - Hallway B', 'pending', 'John Smith'),
-(1, 'Maintenance', 'Broken window in gymnasium', 'Gymnasium', 'resolved', 'Admin'),
-(1, 'Safety', 'Flickering lights in parking lot', 'Parking Lot', 'in_progress', 'Alice Johnson'),
-(1, 'Lost Item', 'Lost backpack in library', 'Library', 'pending', 'Mark Lee');
-
--- Add image_url column if not exists (already in original schema)
--- ALTER TABLE incidents ADD COLUMN IF NOT EXISTS image_url TEXT;
-
--- Add anonymous reporting support
--- reporter_name column already exists from original schema
+-- Insert sample admin user (password: admin123 - hash will need to be generated)
+-- Run this after creating a user to get the hash:
+-- INSERT INTO users (username, email, password_hash, role) 
+-- VALUES ('admin', 'admin@school.edu', '$2b$10$your_generated_hash', 'admin');
