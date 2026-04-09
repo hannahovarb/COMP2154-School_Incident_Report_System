@@ -230,8 +230,7 @@ const AdminDashboard = () => {
                   ) : (
                     incidents.map((incident) => {
                       const displayStatus = displayBadgeForRow(incident);
-                      const reporter =
-                        incident.reporter_name || incident.username || user.username || 'Anonymous';
+                      const reporter = incident.reporter_name || 'Anonymous';
                       return (
                         <tr key={incident.id}>
                           <td>
