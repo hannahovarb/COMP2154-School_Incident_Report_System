@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Environment and secrets (use .env.example as a template)
+.env
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Build output
+frontend/dist/
+dist/
+
+# Uploads (runtime)
+backend/uploads/
+
+# OS / editor
+.DS_Store
