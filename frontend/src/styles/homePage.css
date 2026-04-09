@@ -1,0 +1,165 @@
+/* Home — Inter / JWT-aligned (scoped) */
+
+.home-page {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(145deg, #f4f6fb 0%, #e9eef5 100%);
+  min-height: 100vh;
+  color: #1e1f2a;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.home-page *,
+.home-page *::before,
+.home-page *::after {
+  box-sizing: border-box;
+}
+
+.home-page .home-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+.home-page .hero {
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+
+.home-page .hero h1 {
+  font-weight: 700;
+  font-size: 2.5rem;
+  letter-spacing: -0.02em;
+  color: #0b1c3a;
+  margin: 0 0 1rem;
+  line-height: 1.2;
+}
+
+.home-page .hero p {
+  font-size: 1.125rem;
+  color: #475569;
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+  font-weight: 400;
+}
+
+.home-page .card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.home-page .info-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 1.75rem 1.75rem 2rem;
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.04);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.1s;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-page .info-card:hover {
+  box-shadow: 0 20px 30px -10px rgba(18, 30, 61, 0.08);
+}
+
+.home-page .info-card h2 {
+  font-weight: 600;
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+  color: #162b4a;
+  margin: 0 0 0.75rem;
+}
+
+.home-page .info-card p {
+  color: #51677d;
+  margin: 0 0 1.75rem;
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.home-page .btn {
+  display: inline-block;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 40px;
+  text-decoration: none;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.1s;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.2px;
+  box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.05);
+}
+
+.home-page .btn-primary {
+  background: #0b1c3a;
+  color: white;
+  box-shadow: 0 8px 16px -6px rgba(11, 28, 58, 0.2);
+}
+
+.home-page .btn-primary:hover {
+  background: #142b50;
+  box-shadow: 0 12px 20px -8px rgba(11, 28, 58, 0.25);
+}
+
+.home-page .btn-secondary {
+  background: #f1f5f9;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+}
+
+.home-page .btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+.home-page .btn-group {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.home-page .card-action {
+  margin-top: auto;
+}
+
+.home-page .jwt-badge {
+  display: inline-block;
+  background: #eef2ff;
+  color: #1e4bd2;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 40px;
+  letter-spacing: 0.5px;
+  border: 1px solid #cdd9ff;
+  margin-left: 8px;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+.home-page .home-footer {
+  margin-top: 3rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #6a7e99;
+}
+
+@media (min-width: 768px) {
+  .home-page .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .home-page .hero h1 {
+    font-size: 3rem;
+  }
+}

@@ -1,27 +1,78 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getAuthToken, getAuthUser, clearAuth } from '../authStorage';
+import '../styles/adminDashboardPage.css';
+
+const STATUSES = ['All Statuses', 'Pending', 'Resolved', 'In Review', 'Open'];
+const TYPES = ['All Types', 'Bullying', 'Maintenance', 'Safety', 'Lost Item', 'Other'];
+
+function StatusBadge({ status }) {
+  const map = {
+    Pending: 'status-badge status-pending',
+    Resolved: 'status-badge status-resolved',
+    'In Review': 'status-badge status-inreview',
+    Open: 'status-badge status-open',
+  };
+  const cls = map[status] || 'status-badge';
+  return <span className={cls}>{status}</span>;
+}
+
+function apiStatusToFilterParam(uiStatus) {
+  switch (uiStatus) {
+    case 'Pending':
+    case 'Open':
+      return 'pending';
+    case 'Resolved':
+      return 'resolved';
+    case 'In Review':
+      return 'in_progress';
+    default:
+      return 'all';
+  }
+}
+
+function rowToDisplayStatus(apiStatus) {
+  switch (apiStatus) {
+    case 'pending':
+      return 'Pending';
+    case 'in_progress':
+      return 'In Review';
+    case 'resolved':
+      return 'Resolved';
+    default:
+      return 'Pending';
+  }
+}
 
 const AdminDashboard = () => {
   const [incidents, setIncidents] = useState([]);
-  const [filterType, setFilterType] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState('All Types');
+  const [statusFilter, setStatusFilter] = useState('All Statuses');
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [updating, setUpdating] = useState(false);
   const navigate = useNavigate();
+  const user = getAuthUser() || {};
 
-  const incidentTypes = ['all', 'Bullying', 'Maintenance', 'Safety', 'Lost Item', 'Other'];
-  const statusOptions = ['all', 'pending', 'in_progress', 'resolved'];
+  useEffect(() => {
+    document.title = 'Admin Dashboard · Incident Reports';
+    return () => {
+      document.title = 'School Incident Reporting';
+    };
+  }, []);
 
   const fetchIncidents = async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      if (filterType !== 'all') params.append('type', filterType);
-      if (filterStatus !== 'all') params.append('status', filterStatus);
-      if (searchTerm) params.append('search', searchTerm);
+      const typeKey = typeFilter === 'All Types' ? 'all' : typeFilter;
+      const statusKey = apiStatusToFilterParam(statusFilter);
+
+      if (typeKey !== 'all') params.append('type', typeKey);
+      if (statusKey !== 'all') params.append('status', statusKey);
+      if (search.trim()) params.append('search', search.trim());
 
       const response = await axios.get(`/api/incidents?${params.toString()}`);
       setIncidents(response.data);
@@ -36,18 +87,17 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     if (!token) {
       navigate('/login');
       return;
     }
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     fetchIncidents();
-  }, [filterType, filterStatus, searchTerm]);
+  }, [typeFilter, statusFilter, search]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    clearAuth();
     delete axios.defaults.headers.common['Authorization'];
     navigate('/login');
   };
@@ -57,9 +107,9 @@ const AdminDashboard = () => {
     try {
       await axios.patch(`/api/incidents/${incidentId}/status`, {
         status: newStatus,
-        notes: `Status updated by admin to ${newStatus}`
+        notes: `Status updated by admin to ${newStatus}`,
       });
-      fetchIncidents();
+      await fetchIncidents();
     } catch (error) {
       console.error('Error updating status:', error);
       alert('Failed to update status. Please try again.');
@@ -69,216 +119,192 @@ const AdminDashboard = () => {
     }
   };
 
-  const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case 'pending': return 'status-pending';
-      case 'in_progress': return 'status-in_progress';
-      case 'resolved': return 'status-resolved';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const displayBadgeForRow = (incident) => {
+    if (statusFilter === 'Open' && incident.status === 'pending') return 'Open';
+    return rowToDisplayStatus(incident.status);
   };
 
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'pending': return 'Pending';
-      case 'in_progress': return 'In Progress';
-      case 'resolved': return 'Resolved';
-      default: return status;
-    }
-  };
-
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const countLabel =
+    incidents.length === 1 ? '1 report' : `${incidents.length} reports`;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
-              <p className="text-sm text-gray-500">Welcome back, {user.username}</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-sm text-red-600 hover:text-red-700 font-medium"
-            >
-              Logout
+    <div className="admin-dashboard-page">
+      <div className="dashboard-container">
+        <div className="dashboard-header">
+          <h1>Admin Dashboard</h1>
+          <div className="dashboard-header-actions">
+            <span className="badge-light">Incident Management</span>
+            <button type="button" className="adm-sign-out" onClick={handleLogout}>
+              Sign out
             </button>
           </div>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters Section */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filter by Type
-              </label>
+        <div className="filter-card">
+          <div className="filter-title">Filter by type</div>
+          <div className="filter-row">
+            <div className="filter-group">
+              <label htmlFor="adm-type-filter">Type</label>
               <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="input-field"
+                id="adm-type-filter"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="filter-select"
               >
-                {incidentTypes.map(type => (
-                  <option key={type} value={type}>
-                    {type === 'all' ? 'All Types' : type}
+                {TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
                   </option>
                 ))}
               </select>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filter by Status
-              </label>
+            <div className="filter-group">
+              <label htmlFor="adm-status-filter">Status</label>
               <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="input-field"
+                id="adm-status-filter"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="filter-select"
               >
-                {statusOptions.map(status => (
-                  <option key={status} value={status}>
-                    {status === 'all' ? 'All Statuses' : getStatusLabel(status)}
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
                   </option>
                 ))}
               </select>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search
-              </label>
+            <div className="filter-group filter-group--grow">
+              <label htmlFor="adm-search">Search</label>
               <input
+                id="adm-search"
                 type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by description or location..."
-                className="input-field"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && fetchIncidents()}
+                className="filter-input"
+                placeholder="ID, reporter, location..."
               />
             </div>
+            <button
+              type="button"
+              className="filter-button"
+              onClick={() => fetchIncidents()}
+              disabled={loading}
+            >
+              Filter
+            </button>
           </div>
         </div>
 
-        {/* Incidents Table */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="reports-card">
+          <div className="section-header">
+            <h2>Incident Reports</h2>
+            <span className="report-count">{loading ? '…' : countLabel}</span>
+          </div>
+
+          <div className="table-wrapper">
             {loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
-                <p className="text-gray-500 mt-2">Loading incidents...</p>
-              </div>
-            ) : incidents.length === 0 ? (
-              <div className="text-center py-12">
-                <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <p className="text-gray-500">No incidents found.</p>
+              <div className="adm-loading">
+                <div className="adm-spinner" aria-hidden="true" />
+                <p style={{ marginTop: '1rem' }}>Loading incidents…</p>
               </div>
             ) : (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table>
+                <thead>
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reporter</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Reporter</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {incidents.map((incident) => (
-                    <tr key={incident.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        #{incident.id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
-                          {incident.type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {incident.reporter_name || incident.username || 'Anonymous'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {incident.location}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={getStatusBadgeClass(incident.status)}>
-                          {getStatusLabel(incident.status)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                        {selectedIncident === incident.id ? (
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleStatusUpdate(incident.id, 'in_progress')}
-                              disabled={updating}
-                              className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                            >
-                              In Progress
-                            </button>
-                            <button
-                              onClick={() => handleStatusUpdate(incident.id, 'resolved')}
-                              disabled={updating}
-                              className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-                            >
-                              Resolve
-                            </button>
-                            <button
-                              onClick={() => setSelectedIncident(null)}
-                              className="px-3 py-1 text-xs bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => setSelectedIncident(incident.id)}
-                              className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                            >
-                              Update
-                            </button>
-                            <button
-                              onClick={() => alert(`Details:\nType: ${incident.type}\nDescription: ${incident.description}\nLocation: ${incident.location}\nStatus: ${incident.status}`)}
-                              className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                            >
-                              View
-                            </button>
-                          </div>
-                        )}
+                <tbody>
+                  {incidents.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', color: '#6a7e99' }}>
+                        No reports found.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    incidents.map((incident) => {
+                      const displayStatus = displayBadgeForRow(incident);
+                      const reporter =
+                        incident.reporter_name || incident.username || user.username || 'Anonymous';
+                      return (
+                        <tr key={incident.id}>
+                          <td>
+                            <span style={{ fontWeight: 500 }}>{incident.id}</span>
+                          </td>
+                          <td>{incident.type}</td>
+                          <td>{reporter}</td>
+                          <td>{incident.location}</td>
+                          <td>
+                            <StatusBadge status={displayStatus} />
+                          </td>
+                          <td className="action-links">
+                            {selectedIncident === incident.id ? (
+                              <>
+                                <button
+                                  type="button"
+                                  className="action-link update-link"
+                                  disabled={updating}
+                                  onClick={() => handleStatusUpdate(incident.id, 'in_progress')}
+                                >
+                                  In review
+                                </button>
+                                <button
+                                  type="button"
+                                  className="action-link update-link"
+                                  disabled={updating}
+                                  onClick={() => handleStatusUpdate(incident.id, 'resolved')}
+                                >
+                                  Resolve
+                                </button>
+                                <button
+                                  type="button"
+                                  className="action-link"
+                                  disabled={updating}
+                                  onClick={() => setSelectedIncident(null)}
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  className="action-link update-link"
+                                  onClick={() => setSelectedIncident(incident.id)}
+                                >
+                                  Update
+                                </button>
+                                <button
+                                  type="button"
+                                  className="action-link"
+                                  onClick={() =>
+                                    alert(
+                                      `Details:\nType: ${incident.type}\nDescription: ${incident.description}\nLocation: ${incident.location}\nStatus: ${displayStatus}`
+                                    )
+                                  }
+                                >
+                                  View
+                                </button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             )}
           </div>
         </div>
 
-        {/* Stats Summary */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <p className="text-sm text-gray-500">Total Incidents</p>
-            <p className="text-2xl font-bold text-gray-800">{incidents.length}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <p className="text-sm text-gray-500">Pending</p>
-            <p className="text-2xl font-bold text-yellow-600">
-              {incidents.filter(i => i.status === 'pending').length}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <p className="text-sm text-gray-500">Resolved</p>
-            <p className="text-2xl font-bold text-green-600">
-              {incidents.filter(i => i.status === 'resolved').length}
-            </p>
-          </div>
-        </div>
+        <div className="dashboard-footer">JWT secured · admin panel</div>
       </div>
     </div>
   );

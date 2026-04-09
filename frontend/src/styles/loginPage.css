@@ -1,0 +1,311 @@
+/* JWT login page — ported from static HTML mock */
+
+.login-page-root {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(145deg, #f4f6fb 0%, #e9eef5 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  margin: 0;
+  color: #1e1f2a;
+}
+
+.login-page-card {
+  background: #ffffff;
+  max-width: 460px;
+  width: 100%;
+  padding: 2.5rem 2rem 2.25rem;
+  border-radius: 32px;
+  box-shadow:
+    0 20px 35px -8px rgba(0, 0, 0, 0.08),
+    0 8px 18px -6px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(2px);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.login-page-card:hover {
+  box-shadow: 0 24px 42px -12px rgba(18, 30, 61, 0.12);
+}
+
+.login-page-title {
+  font-weight: 600;
+  font-size: 1.9rem;
+  letter-spacing: -0.02em;
+  color: #0b1c3a;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.login-page-title::after {
+  content: 'JWT';
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #eef2ff;
+  color: #1e4bd2;
+  padding: 3px 10px;
+  border-radius: 40px;
+  letter-spacing: 0.3px;
+  margin-left: 4px;
+  border: 1px solid #cdd9ff;
+}
+
+.login-page-section-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.login-page-h2 {
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  color: #162b4a;
+}
+
+.login-page-access-badge {
+  background: #f0f4fe;
+  padding: 5px 12px;
+  border-radius: 40px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #1e4bd2;
+  border: 1px solid #d0dfff;
+  white-space: nowrap;
+}
+
+.login-page-form-group {
+  margin-bottom: 1.4rem;
+}
+
+.login-page-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #1f2a41;
+}
+
+.login-page-input-email {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+  background: #fafcff;
+  border: 1.5px solid #dfe7f0;
+  border-radius: 18px;
+  outline: none;
+  transition: all 0.18s;
+  font-family: 'Inter', sans-serif;
+  color: #0b1c3a;
+}
+
+.login-page-input-email:focus {
+  border-color: #2d6ff7;
+  box-shadow: 0 0 0 4px rgba(45, 111, 247, 0.12);
+  background: #ffffff;
+}
+
+.login-page-input-email::placeholder {
+  color: #8f9eb2;
+  font-weight: 400;
+  font-size: 0.95rem;
+}
+
+.login-page-input-email.login-page-field-error {
+  border-color: #f87171;
+  background: #fef2f2;
+}
+
+.login-page-password-wrap {
+  display: flex;
+  align-items: center;
+  background: #fafcff;
+  border: 1.5px solid #dfe7f0;
+  border-radius: 18px;
+  transition: all 0.18s;
+}
+
+.login-page-password-wrap:focus-within {
+  border-color: #2d6ff7;
+  box-shadow: 0 0 0 4px rgba(45, 111, 247, 0.12);
+  background: #ffffff;
+}
+
+.login-page-password-wrap.login-page-field-error {
+  border-color: #f87171;
+  background: #fef2f2;
+}
+
+.login-page-password-wrap input {
+  flex: 1;
+  padding: 0.9rem 0 0.9rem 1rem;
+  font-size: 1rem;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: 'Inter', sans-serif;
+  color: #0b1c3a;
+}
+
+.login-page-password-wrap input::placeholder {
+  color: #8f9eb2;
+  font-weight: 400;
+}
+
+.login-page-toggle-btn {
+  background: transparent;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2d6ff7;
+  cursor: pointer;
+  border-left: 1px solid #dee6f0;
+  margin: 4px 0;
+  transition:
+    color 0.15s,
+    background 0.15s;
+  border-radius: 0 16px 16px 0;
+  letter-spacing: 0.2px;
+  font-family: 'Inter', sans-serif;
+}
+
+.login-page-toggle-btn:hover {
+  background: #e9f0fe;
+  color: #1a4bcc;
+}
+
+.login-page-toggle-btn:active {
+  background: #d4e2fc;
+}
+
+.login-page-flex-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1.2rem 0 1.8rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.login-page-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2c3e50;
+  cursor: pointer;
+}
+
+.login-page-checkbox-label input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: #2d6ff7;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.login-page-forgot-link {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2d6ff7;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.login-page-forgot-link:hover {
+  border-bottom: 1px solid #2d6ff7;
+}
+
+.login-page-submit {
+  width: 100%;
+  background: #0b1c3a;
+  color: white;
+  font-weight: 600;
+  font-size: 1.05rem;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.1s,
+    box-shadow 0.2s;
+  box-shadow: 0 8px 18px -6px rgba(11, 28, 58, 0.25);
+  letter-spacing: 0.3px;
+  margin-bottom: 1.8rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.login-page-submit:hover:not(:disabled) {
+  background: #142b50;
+  box-shadow: 0 12px 22px -8px rgba(11, 28, 58, 0.3);
+}
+
+.login-page-submit:active:not(:disabled) {
+  transform: scale(0.98);
+  background: #0b1c3a;
+}
+
+.login-page-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.login-page-signup {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #475569;
+  border-top: 1px solid #e2e9f2;
+  padding-top: 1.6rem;
+  margin-top: 0.2rem;
+}
+
+.login-page-signup-link {
+  color: #1e4bd2;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 4px;
+  border-bottom: 1.5px solid #b7ceff;
+  transition: border-color 0.15s;
+}
+
+.login-page-signup-link:hover {
+  border-bottom-color: #1e4bd2;
+}
+
+.login-page-footer-note {
+  margin-top: 1rem;
+  font-size: 0.7rem;
+  color: #8598ae;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+.login-page-alert {
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+
+.login-page-field-msg {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #dc2626;
+  margin-left: 4px;
+}

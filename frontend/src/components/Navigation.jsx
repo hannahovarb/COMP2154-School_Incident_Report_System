@@ -1,69 +1,59 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { getAuthToken, getAuthUser, clearAuth } from '../authStorage';
+import '../styles/navigationBar.css';
 
 const Navigation = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
-  const user = token ? JSON.parse(localStorage.getItem('user') || '{}') : null;
+  const token = getAuthToken();
+  const user = token ? getAuthUser() : null;
   const isAdmin = user?.role === 'admin';
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    clearAuth();
+    delete axios.defaults.headers.common['Authorization'];
     navigate('/login');
   };
 
-  if (!token) {
-    return (
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex justify-between items-center">
-            <Link to="/report" className="text-xl font-bold text-blue-600">
-              School Incident Reporting
-            </Link>
-            <div className="space-x-4">
-              <Link to="/login" className="text-gray-600 hover:text-gray-800">
+  return (
+    <nav className="app-navigation" aria-label="Main">
+      <div className="nav-container">
+        <Link to="/" className="nav-logo">
+          School Incident Reporting
+        </Link>
+
+        {!token ? (
+          <div className="nav-links">
+            <div className="nav-auth-actions">
+              <Link to="/login" className="nav-link">
                 Login
               </Link>
-              <Link to="/signup" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+              <Link to="/signup" className="btn-primary-sm">
                 Sign Up
               </Link>
             </div>
           </div>
-        </div>
-      </nav>
-    );
-  }
-
-  return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <div className="flex justify-between items-center">
-          <Link to="/report" className="text-xl font-bold text-blue-600">
-            School Incident Reporting
-          </Link>
-          <div className="flex items-center space-x-6">
-            <Link to="/report" className="text-gray-600 hover:text-gray-800">
+        ) : (
+          <div className="nav-links">
+            <Link to="/report" className="nav-link">
               Report Incident
             </Link>
             {isAdmin && (
-              <Link to="/dashboard" className="text-gray-600 hover:text-gray-800">
+              <Link to="/dashboard" className="nav-link">
                 Admin Dashboard
               </Link>
             )}
-            <div className="flex items-center space-x-3">
-              <span className="text-sm text-gray-500">
+            <div className="nav-user-block">
+              <span className="welcome-text">
                 Welcome, {user?.username || user?.email}
               </span>
-              <button
-                onClick={handleLogout}
-                className="text-red-600 hover:text-red-700 text-sm"
-              >
+              <button type="button" className="logout-btn" onClick={handleLogout}>
                 Logout
               </button>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </nav>
   );

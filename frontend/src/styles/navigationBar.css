@@ -1,0 +1,138 @@
+/* Top navigation — Inter / JWT-aligned (scoped) */
+
+.app-navigation {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #ffffff;
+  box-shadow: 0 4px 12px -6px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+.app-navigation *,
+.app-navigation *::before,
+.app-navigation *::after {
+  box-sizing: border-box;
+}
+
+.app-navigation .nav-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.app-navigation .nav-logo {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+  letter-spacing: -0.01em;
+  transition: color 0.15s;
+}
+
+.app-navigation .nav-logo:hover {
+  color: #1e40af;
+}
+
+.app-navigation .nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.app-navigation .nav-link {
+  color: #4b5563;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.15s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+
+.app-navigation .nav-link:hover {
+  color: #1f2937;
+}
+
+.app-navigation .nav-auth-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-navigation .btn-primary-sm {
+  background: #2563eb;
+  color: white;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 40px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+  box-shadow: 0 6px 12px -6px rgba(37, 99, 235, 0.2);
+  font-family: inherit;
+}
+
+.app-navigation .btn-primary-sm:hover {
+  background: #1d4ed8;
+  box-shadow: 0 8px 16px -8px rgba(37, 99, 235, 0.3);
+}
+
+.app-navigation .welcome-text {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.app-navigation .nav-user-block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: 0.5rem;
+}
+
+.app-navigation .logout-btn {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 30px;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  font-family: inherit;
+}
+
+.app-navigation .logout-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+@media (max-width: 640px) {
+  .app-navigation .nav-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .app-navigation .nav-links {
+    justify-content: space-between;
+  }
+}

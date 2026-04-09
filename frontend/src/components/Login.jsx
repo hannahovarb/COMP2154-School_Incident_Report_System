@@ -1,107 +1,175 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { setAuth } from '../authStorage';
+import '../styles/loginPage.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+
+  useEffect(() => {
+    document.title = 'JWT Authentication · Login';
+    return () => {
+      document.title = 'School Incident Reporting';
+    };
+  }, []);
+
+  const validate = () => {
+    const errs = {};
+    if (!email.trim()) errs.email = 'Email is required';
+    else if (!/^\S+@\S+\.\S+$/.test(email)) errs.email = 'Enter a valid email';
+    if (!password) errs.password = 'Password is required';
+    else if (password.length < 6) errs.password = 'Password must be at least 6 characters';
+    setFieldErrors(errs);
+    return errs;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    const errs = validate();
+    if (Object.keys(errs).length > 0) {
+      if (errs.email) emailRef.current?.focus();
+      else passwordRef.current?.focus();
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/auth/login', {
-        email,
-        password
-      });
+      const response = await axios.post('/api/auth/login', { email, password });
 
       const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
+
+      setAuth(token, user, remember);
+
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
+
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please try again.');
+      const msg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        'Login failed. Please try again.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6-4h12a2 2 0 002-2v-4a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2zm10-10V4a2 2 0 00-2-2H8a2 2 0 00-2 2v2" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800">Welcome Back</h1>
-          <p className="text-gray-500 mt-2">Sign in to access the dashboard</p>
+    <div className="login-page-root">
+      <div className="login-page-card">
+        <h1 className="login-page-title">JWT Authentication</h1>
+
+        <div className="login-page-section-title">
+          <h2 className="login-page-h2">User Login</h2>
+          <span className="login-page-access-badge" aria-hidden="true">
+            Access Secure Area
+          </span>
         </div>
 
-        {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="login-page-alert" role="alert" aria-live="polite">
             {error}
           </div>
         )}
 
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="login-page-form-group">
+            <label htmlFor="email" className="login-page-label">
               Email
             </label>
             <input
+              id="email"
+              ref={emailRef}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="input-field"
-              placeholder="Enter your email"
-              required
+              className={`login-page-input-email ${fieldErrors.email ? 'login-page-field-error' : ''}`}
+              placeholder="you@example.com"
+              aria-invalid={!!fieldErrors.email}
+              aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+              autoComplete="email"
             />
+            {fieldErrors.email && (
+              <p id="email-error" className="login-page-field-msg">
+                {fieldErrors.email}
+              </p>
+            )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="login-page-form-group">
+            <label htmlFor="password" className="login-page-label">
               Password
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-field"
-              placeholder="Enter your password"
-              required
-            />
+            <div
+              className={`login-page-password-wrap ${fieldErrors.password ? 'login-page-field-error' : ''}`}
+            >
+              <input
+                id="password"
+                ref={passwordRef}
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                aria-invalid={!!fieldErrors.password}
+                aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                className="login-page-toggle-btn"
+                onClick={() => setShowPassword((s) => !s)}
+                aria-pressed={showPassword}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {fieldErrors.password && (
+              <p id="password-error" className="login-page-field-msg">
+                {fieldErrors.password}
+              </p>
+            )}
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Signing in...' : 'Login'}
+          <div className="login-page-flex-row">
+            <label className="login-page-checkbox-label">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+              />
+              Remember me
+            </label>
+            <Link to="/forgot-password" className="login-page-forgot-link">
+              Forgot password?
+            </Link>
+          </div>
+
+          <button type="submit" className="login-page-submit" disabled={loading}>
+            {loading ? 'Signing in...' : 'Login →'}
           </button>
         </form>
 
-        {/* Signup Link */}
-        <p className="text-center text-gray-600 mt-6">
-          Not registered?{' '}
-          <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+        <div className="login-page-signup">
+          Not registered:
+          <Link to="/signup" className="login-page-signup-link">
             Sign up here
           </Link>
-        </p>
+        </div>
+
+        <div className="login-page-footer-note">JWT • stateless auth</div>
       </div>
     </div>
   );
