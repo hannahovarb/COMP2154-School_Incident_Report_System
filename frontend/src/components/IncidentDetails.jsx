@@ -94,7 +94,7 @@ const IncidentDetails = () => {
                         <label className="incident-details-label">Attached Image</label>
                         <div className="incident-details-image-wrap">
                             <img
-                                src={incident.image_url}
+                                src={`${import.meta.env.VITE_API_URL}${incident.image_url}`}
                                 alt="Incident"
                                 className="incident-details-image"
                             />
