@@ -1,0 +1,225 @@
+.report-incident-page {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(145deg, #f4f6fb 0%, #e9eef5 100%);
+    min-height: 100vh;
+    padding: 2rem 1.5rem;
+    color: #1e1f2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.report-incident-page *,
+.report-incident-page *::before,
+.report-incident-page *::after {
+    box-sizing: border-box;
+}
+
+.report-incident-page .report-card {
+    background: #ffffff;
+    max-width: 720px;
+    width: 100%;
+    padding: 2.25rem 2rem 2rem;
+    border-radius: 28px;
+    box-shadow:
+            0 20px 35px -8px rgba(0, 0, 0, 0.08),
+            0 8px 18px -6px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.report-incident-page .report-topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+
+.report-incident-page .report-back-btn {
+    background: none;
+    border: none;
+    color: #1e4bd2;
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.report-incident-page .report-title {
+    font-weight: 600;
+    font-size: 1.9rem;
+    letter-spacing: -0.02em;
+    color: #0b1c3a;
+    margin: 0;
+}
+
+.report-incident-page .report-subtitle {
+    color: #51677d;
+    font-size: 0.98rem;
+    margin: 0 0 1.6rem;
+}
+
+.report-incident-page .report-alert-success {
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    background: #ecfdf3;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+}
+
+.report-incident-page .report-alert-error {
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+}
+
+.report-incident-page .report-form-group {
+    margin-bottom: 1.35rem;
+}
+
+.report-incident-page .report-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: #1f2a41;
+}
+
+.report-incident-page .report-input,
+.report-incident-page .report-textarea,
+.report-incident-page .report-file-input {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    font-size: 1rem;
+    background: #fafcff;
+    border: 1.5px solid #dfe7f0;
+    border-radius: 18px;
+    outline: none;
+    transition: all 0.18s;
+    font-family: 'Inter', sans-serif;
+    color: #0b1c3a;
+}
+
+.report-incident-page .report-input:focus,
+.report-incident-page .report-textarea:focus,
+.report-incident-page .report-file-input:focus {
+    border-color: #2d6ff7;
+    box-shadow: 0 0 0 4px rgba(45, 111, 247, 0.12);
+    background: #ffffff;
+}
+
+.report-incident-page .report-textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+.report-incident-page .report-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0.5rem 0 1.5rem;
+    font-size: 0.92rem;
+    color: #2c3e50;
+}
+
+.report-incident-page .report-checkbox-row input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    accent-color: #2d6ff7;
+    margin: 0;
+}
+
+.report-incident-page .report-photo-preview {
+    margin-top: 0.9rem;
+    width: 180px;
+    height: 140px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #dfe7f0;
+    background: #f8fafc;
+}
+
+.report-incident-page .report-photo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.report-incident-page .report-file-meta {
+    margin-top: 0.65rem;
+    font-size: 0.88rem;
+    color: #51677d;
+}
+
+.report-incident-page .report-file-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.report-incident-page .report-small-btn {
+    background: #f8fafc;
+    color: #1e293b;
+    border: 1px solid #dbe3ee;
+    border-radius: 999px;
+    padding: 0.55rem 1rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.report-incident-page .report-small-btn:hover {
+    background: #eef2f7;
+}
+
+.report-incident-page .report-submit-btn {
+    width: 100%;
+    background: #0b1c3a;
+    color: white;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 1rem 1.5rem;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    transition:
+            background 0.2s,
+            transform 0.1s,
+            box-shadow 0.2s;
+    box-shadow: 0 8px 18px -6px rgba(11, 28, 58, 0.25);
+    letter-spacing: 0.3px;
+    font-family: 'Inter', sans-serif;
+}
+
+.report-incident-page .report-submit-btn:hover:not(:disabled) {
+    background: #142b50;
+    box-shadow: 0 12px 22px -8px rgba(11, 28, 58, 0.3);
+}
+
+.report-incident-page .report-submit-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .report-incident-page {
+        padding: 1rem;
+    }
+
+    .report-incident-page .report-card {
+        padding: 1.5rem 1.2rem;
+        border-radius: 22px;
+    }
+
+    .report-incident-page .report-title {
+        font-size: 1.55rem;
+    }
+}
