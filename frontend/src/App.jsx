@@ -9,6 +9,7 @@ import Navigation from './components/Navigation';
 import Home from './components/Home';
 import ForgotPassword from './components/ForgotPassword';
 import { getAuthToken, getAuthUser } from './authStorage';
+import IncidentDetails from './components/IncidentDetails';
 
 const PrivateRoute = ({ children, requireAdmin = false }) => {
   const token = getAuthToken();
@@ -62,6 +63,14 @@ const AppLayout = () => {
           }
         />
         <Route path="/" element={<Home />} />
+        <Route
+            path="/dashboard/incidents/:id"
+            element={
+              <PrivateRoute requireAdmin={true}>
+                <IncidentDetails />
+              </PrivateRoute>
+            }
+        />
       </Routes>
     </div>
   );

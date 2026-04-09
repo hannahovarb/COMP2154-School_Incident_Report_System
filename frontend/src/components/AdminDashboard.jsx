@@ -283,11 +283,7 @@ const AdminDashboard = () => {
                                 <button
                                   type="button"
                                   className="action-link"
-                                  onClick={() =>
-                                    alert(
-                                      `Details:\nType: ${incident.type}\nDescription: ${incident.description}\nLocation: ${incident.location}\nStatus: ${displayStatus}`
-                                    )
-                                  }
+                                  onClick={() => navigate(`/dashboard/incidents/${incident.id}`)}
                                 >
                                   View
                                 </button>
