@@ -2,7 +2,7 @@ import pg from 'pg';
 import dotenv from 'dotenv';
 
 dotenv.config();
-// ================================================================================
+
 const { Pool } = pg;
 
 const pool = new Pool({
@@ -15,7 +15,7 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
 });
-// ================================================================================
+
 // Test database connection
 pool.connect((err, client, release) => {
   if (err) {

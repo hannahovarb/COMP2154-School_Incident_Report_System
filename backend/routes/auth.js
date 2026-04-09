@@ -5,7 +5,7 @@ import pool from '../config/database.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
-// ================================================================================
+
 // User registration
 router.post('/register', async (req, res) => {
   const { username, email, password, role = 'student' } = req.body;
@@ -56,7 +56,7 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
-// ================================================================================
+
 // User login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -103,7 +103,7 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
-// ================================================================================
+
 // Get current user
 router.get('/me', authenticateToken, async (req, res) => {
   res.json({ user: req.user });
