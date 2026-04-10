@@ -1,22 +1,21 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import { getAuthToken } from '../authStorage';
+import '../styles/reportIncidentPage.css';
 
 const ReportIncident = () => {
   const [formData, setFormData] = useState({
-    type: 'Bullying',
+    type: 'Maintenance',
     location: '',
+    subject: '',
     description: '',
-    is_anonymous: false
+    is_anonymous: false,
   });
   const [photo, setPhoto] = useState(null);
-  const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const fileInputRef = useRef(null);
-  const navigate = useNavigate();
 
   const incidentTypes = [
     'Bullying',
@@ -25,6 +24,18 @@ const ReportIncident = () => {
     'Lost Item',
     'Other'
   ];
+
+  useEffect(() => {
+    document.title = 'Report Incident · School System';
+    return () => {
+      document.title = 'School Incident Reporting';
+    };
+  }, []);
+
+  const fileName = useMemo(() => {
+    if (!photo) return 'No file chosen';
+    return photo.name || 'No file chosen';
+  }, [photo]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -52,19 +63,11 @@ const ReportIncident = () => {
       
       setPhoto(file);
       setError('');
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
     }
   };
 
   const handleRemovePhoto = () => {
     setPhoto(null);
-    setPhotoPreview(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -87,11 +90,15 @@ const ReportIncident = () => {
     setError('');
     
     try {
+      const composedDescription = formData.subject.trim()
+        ? `Subject: ${formData.subject.trim()}\n\n${formData.description}`
+        : formData.description;
+
       // Create FormData for file upload
       const submitData = new FormData();
       submitData.append('type', formData.type);
       submitData.append('location', formData.location);
-      submitData.append('description', formData.description);
+      submitData.append('description', composedDescription);
       submitData.append('is_anonymous', formData.is_anonymous);
       
       if (photo) {
@@ -114,10 +121,11 @@ const ReportIncident = () => {
       
       setSuccess(true);
       setFormData({
-        type: 'Bullying',
+        type: 'Maintenance',
         location: '',
+        subject: '',
         description: '',
-        is_anonymous: false
+        is_anonymous: false,
       });
       handleRemovePhoto();
       
@@ -135,113 +143,125 @@ const ReportIncident = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
-      <div className="report-phone">
-        <div className="report-phone-screen">
-          <header className="report-header">
-            <button type="button" onClick={() => navigate(-1)} className="report-back-btn" aria-label="Go back">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            <h1 className="report-header-title">Report an Incident</h1>
-          </header>
+    <div className="report-page-root">
+      <div className="report-card">
+        <h1 className="report-title">School Incident Reporting</h1>
+        <div className="report-subhead">Report an Incident</div>
 
-          <div className="p-6">
-            {success && (
-              <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-                Report submitted successfully.
-              </div>
-            )}
-
-            {error && (
-              <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit}>
-              <div className="mb-5">
-                <label className="report-label">Incident Type:</label>
-                <select name="type" value={formData.type} onChange={handleChange} className="report-input" required>
-                  {incidentTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="mb-5">
-                <label className="report-label">Location:</label>
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  className="report-input"
-                  placeholder="Type here"
-                  required
-                />
-              </div>
-
-              <div className="mb-5">
-                <label className="report-label">Description:</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows="4"
-                  className="report-input resize-none"
-                  placeholder="Type here"
-                  required
-                />
-              </div>
-
-              <div className="mb-8">
-                <label className="report-photo-label">
-                  Upload photo <span className="text-gray-400">(Optional)</span>
-                </label>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handlePhotoChange}
-                  accept="image/jpeg,image/jpg,image/png,image/gif"
-                  className="hidden"
-                  id="photo-upload"
-                />
-
-                <div className="mt-3 flex gap-3 items-end">
-                  <label htmlFor="photo-upload" className="report-photo-box">
-                    {photoPreview ? (
-                      <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <svg className="w-14 h-14 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 16l4.5-4.5a2 2 0 012.8 0L16 16m-2-2 1.5-1.5a2 2 0 012.8 0L20 14M8 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    )}
-                  </label>
-
-                  <div className="flex-1">
-                    <p className="text-lg font-semibold text-slate-700 mb-2">{photo?.name || 'photo.jpg'}</p>
-                    <div className="flex gap-2">
-                      <button type="button" onClick={() => fileInputRef.current?.click()} className="report-photo-btn">
-                        Change
-                      </button>
-                      <button type="button" onClick={handleRemovePhoto} className="report-photo-btn">
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <button type="submit" disabled={loading} className="report-submit-btn">
-                {loading ? 'Submitting...' : 'Submit Report'}
-              </button>
-            </form>
+        {success && (
+          <div className="report-alert report-alert-success" role="status" aria-live="polite">
+            Report submitted successfully.
           </div>
-        </div>
+        )}
+
+        {error && (
+          <div className="report-alert report-alert-error" role="alert" aria-live="polite">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="report-form-group">
+            <label htmlFor="incidentType" className="report-label">
+              Incident Type
+            </label>
+            <select
+              id="incidentType"
+              name="type"
+              value={formData.type}
+              onChange={handleChange}
+              className="report-select"
+              required
+            >
+              {incidentTypes.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="report-form-group">
+            <label htmlFor="location" className="report-label">
+              Location
+            </label>
+            <input
+              id="location"
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              className="report-input"
+              placeholder="Type here"
+              autoComplete="off"
+              required
+            />
+          </div>
+
+          <div className="report-form-group">
+            <label htmlFor="subject" className="report-label">
+              Brief title / subject
+            </label>
+            <input
+              id="subject"
+              type="text"
+              name="subject"
+              value={formData.subject}
+              onChange={handleChange}
+              className="report-input"
+              placeholder="Type here"
+              autoComplete="off"
+            />
+            <div className="report-hint">e.g., "Broken projector" or "Noise complaint"</div>
+          </div>
+
+          <div className="report-form-group">
+            <label htmlFor="description" className="report-label">
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              className="report-textarea"
+              placeholder="Provide detailed information about the incident..."
+              required
+            />
+          </div>
+
+          <div className="report-form-group">
+            <label className="report-label">Upload photo (Optional)</label>
+            <div className="report-file-row">
+              <label htmlFor="photoUpload" className="report-file-btn">
+                Choose File
+              </label>
+              <input
+                id="photoUpload"
+                ref={fileInputRef}
+                type="file"
+                name="photo"
+                className="report-file-input"
+                accept="image/*"
+                onChange={handlePhotoChange}
+              />
+              <span className="report-file-name" aria-live="polite">
+                {fileName}
+              </span>
+              {photo && (
+                <button type="button" className="report-file-clear" onClick={handleRemovePhoto}>
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+
+          <button type="submit" className="report-submit-btn" disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit Report'}
+          </button>
+        </form>
+
+        <div className="report-footer-note">JWT secured · incident reporting</div>
       </div>
     </div>
   );

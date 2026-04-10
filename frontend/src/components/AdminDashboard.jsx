@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { getAuthToken, getAuthUser, clearAuth } from '../authStorage';
 import '../styles/adminDashboardPage.css';
@@ -16,6 +16,16 @@ function StatusBadge({ status }) {
   };
   const cls = map[status] || 'status-badge';
   return <span className={cls}>{status}</span>;
+}
+
+function RecentStatusBadge({ apiStatus }) {
+  if (apiStatus === 'resolved') {
+    return <span className="status-badge status-resolved">Resolved</span>;
+  }
+  if (apiStatus === 'in_progress') {
+    return <span className="status-badge status-review">Under Review</span>;
+  }
+  return <span className="status-badge status-open">Open</span>;
 }
 
 function apiStatusToFilterParam(uiStatus) {
@@ -45,8 +55,28 @@ function rowToDisplayStatus(apiStatus) {
   }
 }
 
+function formatReportDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+}
+
+function shortReporterName(name) {
+  const n = (name || 'Anonymous').trim();
+  if (!n || n === 'Anonymous') return 'Anonymous';
+  const parts = n.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0];
+  const first = parts[0];
+  const last = parts[parts.length - 1];
+  const initial = last[0] ? `${last[0].toUpperCase()}.` : '';
+  return `${first} ${initial}`;
+}
+
 const AdminDashboard = () => {
   const [incidents, setIncidents] = useState([]);
+  const [recentIncidents, setRecentIncidents] = useState([]);
+  const [recentLoading, setRecentLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('All Types');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   const [search, setSearch] = useState('');
@@ -57,13 +87,37 @@ const AdminDashboard = () => {
   const user = getAuthUser() || {};
 
   useEffect(() => {
-    document.title = 'Admin Dashboard · Incident Reports';
+    document.title = 'School Incident Report · Dashboard';
     return () => {
       document.title = 'School Incident Reporting';
     };
   }, []);
 
-  const fetchIncidents = async () => {
+  const handleLogout = useCallback(() => {
+    clearAuth();
+    delete axios.defaults.headers.common['Authorization'];
+    navigate('/login');
+  }, [navigate]);
+
+  const fetchRecentIncidents = useCallback(async () => {
+    try {
+      setRecentLoading(true);
+      const response = await axios.get('/api/incidents');
+      const sorted = [...response.data].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+      setRecentIncidents(sorted.slice(0, 3));
+    } catch (error) {
+      console.error('Error fetching recent incidents:', error);
+      if (error.response?.status === 401) {
+        handleLogout();
+      }
+    } finally {
+      setRecentLoading(false);
+    }
+  }, [handleLogout]);
+
+  const fetchIncidents = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -84,7 +138,7 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [typeFilter, statusFilter, search, handleLogout]);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -93,14 +147,17 @@ const AdminDashboard = () => {
       return;
     }
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    fetchIncidents();
-  }, [typeFilter, statusFilter, search]);
+    fetchRecentIncidents();
+  }, [navigate, fetchRecentIncidents]);
 
-  const handleLogout = () => {
-    clearAuth();
-    delete axios.defaults.headers.common['Authorization'];
-    navigate('/login');
-  };
+  useEffect(() => {
+    const token = getAuthToken();
+    if (!token) {
+      return;
+    }
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    fetchIncidents();
+  }, [fetchIncidents]);
 
   const handleStatusUpdate = async (incidentId, newStatus) => {
     setUpdating(true);
@@ -110,6 +167,7 @@ const AdminDashboard = () => {
         notes: `Status updated by admin to ${newStatus}`,
       });
       await fetchIncidents();
+      await fetchRecentIncidents();
     } catch (error) {
       console.error('Error updating status:', error);
       alert('Failed to update status. Please try again.');
@@ -130,17 +188,114 @@ const AdminDashboard = () => {
   return (
     <div className="admin-dashboard-page">
       <div className="dashboard-container">
-        <div className="dashboard-header">
-          <h1>Admin Dashboard</h1>
-          <div className="dashboard-header-actions">
-            <span className="badge-light">Incident Management</span>
-            <button type="button" className="adm-sign-out" onClick={handleLogout}>
+        <header className="top-header">
+          <h1>School Incident Report</h1>
+          <div className="top-header-right">
+            <nav className="nav-links" aria-label="Dashboard navigation">
+              <NavLink to="/dashboard" end className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                Dashboard
+              </NavLink>
+              <a href="#incident-reports" className="nav-link">
+                Reports
+              </a>
+              <button type="button" className="nav-link" title="Not available in this build">
+                Settings
+              </button>
+            </nav>
+            <button type="button" className="top-sign-out" onClick={handleLogout}>
               Sign out
+            </button>
+          </div>
+        </header>
+
+        <div className="card-grid-four">
+          <Link to="/report" className="stat-card">
+            <h3>New Incident</h3>
+            <p>Report a New Incident</p>
+          </Link>
+          <a href="#incident-reports" className="stat-card">
+            <h3>View Incidents</h3>
+            <p>Search &amp; Manage Reports</p>
+          </a>
+          <button type="button" className="stat-card" title="Not available in this build">
+            <h3>Students</h3>
+            <p>Student Information</p>
+          </button>
+          <button type="button" className="stat-card" title="Not available in this build">
+            <h3>Analytics</h3>
+            <p>Incident Statistics</p>
+          </button>
+        </div>
+
+        <section className="section-card" aria-labelledby="recent-incidents-heading">
+          <div className="section-header">
+            <h2 id="recent-incidents-heading">Recent Incidents</h2>
+            <span className="badge-light">Last 3 reports</span>
+          </div>
+          <div className="recent-table-wrapper table-wrapper">
+            {recentLoading ? (
+              <div className="adm-loading" style={{ padding: '2rem 1rem' }}>
+                <div className="adm-spinner" aria-hidden="true" />
+                <p style={{ marginTop: '1rem' }}>Loading recent incidents…</p>
+              </div>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Student</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentIncidents.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} style={{ textAlign: 'center', color: '#6a7e99' }}>
+                        No incidents yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    recentIncidents.map((inc) => {
+                      const reporter =
+                        inc.reporter_name || inc.username || user.username || 'Anonymous';
+                      return (
+                        <tr key={inc.id}>
+                          <td>{formatReportDate(inc.created_at)}</td>
+                          <td>{shortReporterName(reporter)}</td>
+                          <td>{inc.type}</td>
+                          <td>
+                            <RecentStatusBadge apiStatus={inc.status} />
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </section>
+
+        <div className="quick-links-card">
+          <span className="quick-links-title">Quick Links</span>
+          <div className="links-group">
+            <button type="button" className="quick-link" title="Not available in this build">
+              Incident Guidelines
+            </button>
+            <button type="button" className="quick-link" title="Not available in this build">
+              Emergency Contacts
+            </button>
+            <button type="button" className="quick-link" title="Not available in this build">
+              Safety Resources
+            </button>
+            <button type="button" className="quick-link" title="Not available in this build">
+              Help &amp; Support
             </button>
           </div>
         </div>
 
-        <div className="filter-card">
+        <div id="incident-reports" className="filter-card">
           <div className="filter-title">Filter by type</div>
           <div className="filter-row">
             <div className="filter-group">
@@ -185,12 +340,7 @@ const AdminDashboard = () => {
                 placeholder="ID, reporter, location..."
               />
             </div>
-            <button
-              type="button"
-              className="filter-button"
-              onClick={() => fetchIncidents()}
-              disabled={loading}
-            >
+            <button type="button" className="filter-button" onClick={() => fetchIncidents()} disabled={loading}>
               Filter
             </button>
           </div>
@@ -304,7 +454,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="dashboard-footer">JWT secured · admin panel</div>
+        <div className="footer-note">JWT secured · School Incident Reporting</div>
       </div>
     </div>
   );
