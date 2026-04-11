@@ -217,14 +217,6 @@ const AdminDashboard = () => {
             <h3>View Incidents</h3>
             <p>Search &amp; Manage Reports</p>
           </a>
-          <button type="button" className="stat-card" title="Not available in this build">
-            <h3>Students</h3>
-            <p>Student Information</p>
-          </button>
-          <button type="button" className="stat-card" title="Not available in this build">
-            <h3>Analytics</h3>
-            <p>Incident Statistics</p>
-          </button>
         </div>
 
         <section className="section-card" aria-labelledby="recent-incidents-heading">
